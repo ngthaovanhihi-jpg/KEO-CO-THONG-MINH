@@ -1,0 +1,6 @@
+{
+  "name": "Trò Chơi Kéo Co",
+  "description": "Trò chơi kéo co trắc nghiệm đối kháng trong khung cố định với hiệu ứng kéo dây sống động và quản lý bộ câu hỏi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
