@@ -1,21 +1,471 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trò Chơi Kéo Co - Đấu Trường Trắc Nghiệm</title>
-    <meta name="description" content="Trò chơi kéo co trắc nghiệm đối kháng trong khung cố định với hiệu ứng kéo dây sống động và quản lý bộ câu hỏi." />
-    <meta property="og:title" content="Trò Chơi Kéo Co - Đấu Trường Trắc Nghiệm" />
-    <meta property="og:description" content="Trò chơi kéo co trắc nghiệm đối kháng trong khung cố định với hiệu ứng kéo dây sống động và quản lý bộ câu hỏi." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò Chơi Kéo Co - Đấu Trường Trắc Nghiệm Tương Tác</title>
+  <meta name="description" content="Trò chơi kéo co trắc nghiệm đối kháng với hiệu ứng kéo dây sống động, hỗ trợ 2 người chơi hoặc thi đấu với máy AI, tùy chỉnh ngân hàng câu hỏi.">
+  <meta property="og:title" content="Trò Chơi Kéo Co - Đấu Trường Trắc Nghiệm Tương Tác">
+  <meta property="og:description" content="Trò chơi kéo co trắc nghiệm đối kháng với hiệu ứng kéo dây sống động, hỗ trợ 2 người chơi hoặc thi đấu với máy AI.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
 
+  <!-- Pháo hoa chúc mừng -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- THANH ĐIỀU HƯỚNG & CÔNG CỤ TRÊN CÙNG -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-section">
+        <div class="brand-icon">🏆</div>
+        <div>
+          <h1 class="brand-title">KÉO CO TRI THỨC</h1>
+          <p class="brand-subtitle">Trò chơi trắc nghiệm đối kháng tương tác</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Chuyển Tab -->
+        <button id="tab-arena" class="btn btn-tab active">
+          <span>⚔️</span> <span>Sàn Đấu</span>
+        </button>
+        <button id="tab-questions" class="btn btn-tab">
+          <span>📝</span> <span>Ngân Hàng Câu Hỏi</span>
+        </button>
+
+        <!-- Chế độ đối thủ -->
+        <button id="btn-match-mode" class="btn btn-pvp" title="Đổi chế độ: 2 Người chơi hoặc Chơi với máy AI">
+          <span>👥</span> <span>2 Người Chơi</span>
+        </button>
+
+        <!-- Nút âm thanh -->
+        <button id="btn-sound" class="btn btn-secondary" title="Bật/Tắt âm thanh">
+          🔊 Âm Thanh: BẬT
+        </button>
+
+        <!-- Luật chơi -->
+        <button id="btn-rules" class="btn btn-secondary" title="Xem hướng dẫn luật chơi">
+          📖 Luật Chơi
+        </button>
+
+        <!-- Khởi động lại -->
+        <button class="btn btn-secondary" onclick="window.game.restart()" title="Khởi động lại trận đấu">
+          🔄 Đấu Lại
+        </button>
+
+        <!-- Toàn màn hình -->
+        <button id="btn-fullscreen" class="btn btn-secondary" title="Bật/Tắt toàn màn hình">
+          ⛶ Toàn Màn Hình
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NỘI DUNG CHÍNH -->
+  <main class="main-container">
+
+    <!-- VIEW 1: ĐẤU TRƯỜNG KÉO CO -->
+    <div id="view-arena">
+      <!-- SÂN KÉO CO TRỰC QUAN -->
+      <section class="arena-card">
+        <div class="arena-header">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <div id="arena-blue-role" class="team-badge blue">Người 1</div>
+            <span style="font-weight:900;color:#60a5fa;text-transform:uppercase;font-size:0.95rem;">ĐỘI XANH</span>
+            <span id="arena-blue-score" class="team-badge blue">0 lần kéo</span>
+          </div>
+
+          <div id="rope-position-label" class="status-indicator">
+            Dây đang ở vị trí cân bằng (0)
+          </div>
+
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span id="arena-red-score" class="team-badge red">0 lần kéo</span>
+            <span style="font-weight:900;color:#fb7185;text-transform:uppercase;font-size:0.95rem;">ĐỘI ĐỎ</span>
+            <div id="arena-red-role" class="team-badge red">Người 2</div>
+          </div>
+        </div>
+
+        <!-- SÂN ĐẤU KÉO CO -->
+        <div id="tug-stage" class="tug-stage">
+          <!-- Vạch thắng 2 bên -->
+          <div class="win-zone left" title="Vạch chiến thắng Đội Xanh"></div>
+          <div class="win-zone right" title="Vạch chiến thắng Đội Đỏ"></div>
+          <div class="center-line"></div>
+
+          <!-- Nhóm vận động viên và dây kéo -->
+          <div id="teams-wrapper" class="teams-wrapper">
+            <!-- Đội Xanh bên trái (3 Vận động viên) -->
+            <div class="pullers-group left">
+              <div class="chibi-athlete">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#60a5fa" stroke="#1d4ed8" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M28 25 Q32 29 36 25" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#2563eb" stroke="#1e40af" stroke-width="2.5"/>
+                  <path d="M20 44 L8 38" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M44 44 L52 48" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                </svg>
+              </div>
+              <div class="chibi-athlete" style="margin-left:-8px;">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#93c5fd" stroke="#2563eb" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M27 24 Q32 27 37 24" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="2.5"/>
+                  <path d="M20 44 L10 38" stroke="#1e40af" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M44 44 L54 46" stroke="#1e40af" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#0f172a"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#0f172a"/>
+                </svg>
+              </div>
+              <div class="chibi-athlete" style="margin-left:-8px;">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#3b82f6" stroke="#1d4ed8" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M29 25 Q32 28 35 25" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#2563eb" stroke="#1e40af" stroke-width="2.5"/>
+                  <path d="M20 44 L8 40" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M44 44 L52 48" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Dây thừng và dải ruy-băng trung tâm -->
+            <div class="rope-visual">
+              <div class="center-ribbon"></div>
+            </div>
+
+            <!-- Đội Đỏ bên phải (3 Vận động viên) -->
+            <div class="pullers-group right">
+              <div class="chibi-athlete">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#fb7185" stroke="#be123c" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M28 25 Q32 29 36 25" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#e11d48" stroke="#9f1239" stroke-width="2.5"/>
+                  <path d="M44 44 L56 38" stroke="#be123c" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M20 44 L12 48" stroke="#be123c" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                </svg>
+              </div>
+              <div class="chibi-athlete" style="margin-left:-8px;">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#f43f5e" stroke="#9f1239" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M27 24 Q32 27 37 24" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#be123c" stroke="#881337" stroke-width="2.5"/>
+                  <path d="M44 44 L54 38" stroke="#9f1239" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M20 44 L10 46" stroke="#9f1239" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#0f172a"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#0f172a"/>
+                </svg>
+              </div>
+              <div class="chibi-athlete" style="margin-left:-8px;">
+                <svg viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="32" cy="20" r="14" fill="#fda4af" stroke="#e11d48" stroke-width="3"/>
+                  <circle cx="28" cy="18" r="2.5" fill="#0f172a"/>
+                  <circle cx="36" cy="18" r="2.5" fill="#0f172a"/>
+                  <path d="M29 25 Q32 28 35 25" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                  <rect x="20" y="34" width="24" height="26" rx="6" fill="#e11d48" stroke="#be123c" stroke-width="2.5"/>
+                  <path d="M44 44 L56 40" stroke="#be123c" stroke-width="5" stroke-linecap="round"/>
+                  <path d="M20 44 L12 48" stroke="#be123c" stroke-width="5" stroke-linecap="round"/>
+                  <rect x="22" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                  <rect x="34" y="60" width="8" height="18" rx="4" fill="#1e293b"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thước đo bước kéo -->
+        <div class="gauge-ruler">
+          <span style="color:#60a5fa;font-weight:700;">◄ Vạch thắng Xanh (+5)</span>
+          <div id="gauge-steps-container" class="gauge-steps"></div>
+          <span style="color:#fb7185;font-weight:700;">Vạch thắng Đỏ (-5) ►</span>
+        </div>
+
+        <!-- Thông báo diễn biến vừa xảy ra -->
+        <div id="action-banner" class="action-banner neutral">
+          Trận đấu sẵn sàng! Đội Xanh trả lời câu hỏi đầu tiên.
+        </div>
+      </section>
+
+      <!-- HAI KHUNG CÂU HỎI SONG SONG -->
+      <section class="arena-grid">
+        <!-- KHUNG CÂU HỎI ĐỘI XANH -->
+        <div id="blue-card" class="question-card active-turn blue">
+          <div class="q-header blue">
+            <div class="q-team-title blue">
+              <span>🔵</span> <span>ĐỘI XANH</span>
+              <span id="blue-role-badge" class="q-badge user">👤 BẠN</span>
+            </div>
+            <div id="blue-turn-badge" class="q-badge active-turn">Lượt Của Bạn</div>
+          </div>
+
+          <div class="q-subbar">
+            <span id="blue-q-count" style="font-weight:700;">Câu 1/10</span>
+            <div class="progress-bar-bg">
+              <div id="blue-progress-fill" class="progress-bar-fill blue" style="width: 10%;"></div>
+            </div>
+            <div id="blue-timer" class="timer-box">15s</div>
+          </div>
+
+          <!-- Thông báo máy đang suy nghĩ -->
+          <div id="blue-ai-thinking" class="ai-thinking-box" style="display:none;">
+            <span>🤖</span>
+            <span>Máy đang phân tích câu hỏi và suy nghĩ đáp án...</span>
+          </div>
+
+          <div class="q-body">
+            <div id="blue-question-text" class="question-text">
+              Đang tải câu hỏi...
+            </div>
+
+            <div id="blue-options-container" class="options-list">
+              <!-- 4 Nút đáp án do JS sinh -->
+            </div>
+          </div>
+        </div>
+
+        <!-- KHUNG CÂU HỎI ĐỘI ĐỎ -->
+        <div id="red-card" class="question-card red">
+          <div class="q-header red">
+            <div class="q-team-title red">
+              <span>🔴</span> <span>ĐỘI ĐỎ</span>
+              <span id="red-role-badge" class="q-badge ai">🤖 MÁY</span>
+            </div>
+            <div id="red-turn-badge" class="q-badge">Chờ Lượt...</div>
+          </div>
+
+          <div class="q-subbar">
+            <span id="red-q-count" style="font-weight:700;">Câu 1/10</span>
+            <div class="progress-bar-bg">
+              <div id="red-progress-fill" class="progress-bar-fill red" style="width: 10%;"></div>
+            </div>
+            <div id="red-timer" class="timer-box">15s</div>
+          </div>
+
+          <!-- Thông báo máy đang suy nghĩ -->
+          <div id="red-ai-thinking" class="ai-thinking-box" style="display:none;">
+            <span>🤖</span>
+            <span>Máy đang phân tích câu hỏi và suy nghĩ đáp án...</span>
+          </div>
+
+          <div class="q-body">
+            <div id="red-question-text" class="question-text">
+              Đang tải câu hỏi...
+            </div>
+
+            <div id="red-options-container" class="options-list">
+              <!-- 4 Nút đáp án do JS sinh -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- VIEW 2: QUẢN LÝ NGÂN HÀNG CÂU HỎI -->
+    <div id="view-questions" style="display:none;">
+      <div class="q-bank-tab-view">
+        <div class="q-bank-header">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <h2 style="font-size:1.15rem;font-weight:800;">Ngân Hàng Câu Hỏi Trắc Nghiệm</h2>
+            <span id="q-bank-count" class="status-indicator">10 câu</span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <button id="q-bank-tab-blue" class="btn btn-tab active">Đội Xanh</button>
+            <button id="q-bank-tab-red" class="btn btn-tab">Đội Đỏ</button>
+            <button class="btn btn-secondary" onclick="window.game.openAddQuestion()">+ Thêm Câu Hỏi</button>
+            <button id="btn-export-json" class="btn btn-secondary">Xuất File JSON</button>
+            <label class="btn btn-secondary" style="cursor:pointer;">
+              Nhập JSON
+              <input type="file" id="file-import-json" accept=".json" style="display:none;">
+            </label>
+            <button class="btn btn-secondary" style="color:#f43f5e;" onclick="window.game.resetDefaultQuestions()">Khôi Phục Mặc Định</button>
+          </div>
+        </div>
+
+        <div id="q-bank-list" class="q-list">
+          <!-- Danh sách câu hỏi hiển thị ở đây -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: KẾT THÚC TRẬN ĐẤU (GAME OVER) -->
+  <div id="game-over-modal" class="modal-overlay">
+    <div class="modal-box" style="text-align:center;">
+      <div class="modal-content" style="padding:2rem 1.5rem;">
+        <div style="font-size:3.5rem;margin-bottom:0.5rem;animation:pulse-glow 1.5s infinite;">🏆</div>
+        <h2 id="winner-title" style="font-size:1.6rem;font-weight:900;color:#facc15;margin-bottom:0.5rem;">
+          ĐỘI XANH CHIẾN THẮNG!
+        </h2>
+        <p id="winner-desc" style="color:#cbd5e1;font-size:0.95rem;margin-bottom:1.5rem;">
+          Chúc mừng hai đội đã hoàn thành xuất sắc phần thi đấu!
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+          <div style="background:#0f172a;border:1px solid #3b82f6;padding:1rem;border-radius:0.75rem;">
+            <div style="color:#60a5fa;font-weight:800;font-size:0.85rem;margin-bottom:0.25rem;">ĐỘI XANH</div>
+            <div id="modal-blue-score" style="font-size:1.75rem;font-weight:900;font-family:monospace;">8/10</div>
+          </div>
+          <div style="background:#0f172a;border:1px solid #f43f5e;padding:1rem;border-radius:0.75rem;">
+            <div style="color:#fb7185;font-weight:800;font-size:0.85rem;margin-bottom:0.25rem;">ĐỘI ĐỎ</div>
+            <div id="modal-red-score" style="font-size:1.75rem;font-weight:900;font-family:monospace;">6/10</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:0.75rem;">
+          <button class="btn btn-tab active" style="padding:0.65rem 1.5rem;font-size:0.95rem;" onclick="window.game.restart()">
+            🔄 Chơi Lại Trận Mới
+          </button>
+          <button class="btn btn-secondary btn-modal-close">
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CÀI ĐẶT CHẾ ĐỘ ĐẤU & ĐỐI THỦ (MATCH MODE) -->
+  <div id="match-mode-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Cài Đặt Chế Độ & Chọn Đối Thủ</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <div class="form-group">
+          <label class="form-label">Chọn Đối Thủ Thi Đấu</label>
+          <select id="select-opponent-mode" class="form-select">
+            <option value="pvp">2 Người Chơi Đối Kháng (Cùng một màn hình)</option>
+            <option value="vs_ai">Chơi Với Máy Tính (AI Tự Động Trả Lời)</option>
+          </select>
+        </div>
+
+        <div id="ai-settings-group" style="display:none;background:#0f172a;padding:0.75rem;border-radius:0.5rem;border:1px solid #334155;margin-bottom:0.85rem;">
+          <div class="form-group">
+            <label class="form-label">Bạn Muốn Điều Khiển Đội Nào?</label>
+            <select id="select-player-team" class="form-select">
+              <option value="blue">Đội Xanh (Máy sẽ điều khiển Đội Đỏ)</option>
+              <option value="red">Đội Đỏ (Máy sẽ điều khiển Đội Xanh)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Độ Khó Của Máy (AI)</label>
+            <select id="select-ai-difficulty" class="form-select">
+              <option value="easy">Dễ - AI trả lời đúng ~50%, suy nghĩ 4-6 giây</option>
+              <option value="medium" selected>Vừa - AI trả lời đúng ~75%, suy nghĩ 2.5-4.5 giây</option>
+              <option value="hard">Khó - AI trả lời đúng ~92%, suy nghĩ 1.5-3 giây</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quy Cách Trả Lời</label>
+          <select id="select-game-mode" class="form-select">
+            <option value="turn_based">Lượt Luân Phiên (Lần lượt từng đội trả lời)</option>
+            <option value="simultaneous">Thi Đấu Đồng Thời (Cả 2 đội cùng bấm cùng lúc)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-modal-close">Hủy</button>
+        <button id="btn-apply-match-mode" class="btn btn-tab active">Áp Dụng & Khởi Động Lại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HƯỚNG DẪN LUẬT CHƠI (RULES) -->
+  <div id="rules-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Luật Chơi Kéo Co Tri Thức</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content" style="display:flex;flex-direction:column;gap:0.75rem;">
+        <p><strong>1. Mục tiêu:</strong> Trả lời đúng các câu hỏi trắc nghiệm để kéo dải ruy-băng đỏ về phía sân của đội mình.</p>
+        <p><strong>2. Cách tính bước kéo:</strong></p>
+        <ul style="padding-left:1.25rem;display:flex;flex-direction:column;gap:0.25rem;">
+          <li>Trả lời ĐÚNG: Kéo dây về phía mình +1 bước.</li>
+          <li>Trả lời SAI hoặc HẾT GIỜ (15s): Không kéo được dây.</li>
+        </ul>
+        <p><strong>3. Điều kiện chiến thắng:</strong></p>
+        <ul style="padding-left:1.25rem;display:flex;flex-direction:column;gap:0.25rem;">
+          <li><strong>Thắng Knockout:</strong> Kéo lệch 5 bước về sân nhà (+5 hoặc -5 bước) sẽ giành chiến thắng ngay lập tức!</li>
+          <li><strong>Thắng Tính Điểm:</strong> Sau khi hoàn thành hết câu hỏi, đội nào kéo dây về phía mình xa hơn sẽ chiến thắng.</li>
+        </ul>
+        <p><strong>4. Chế độ đấu:</strong> Hỗ trợ 2 người chơi hoặc đấu với Máy tính (AI) với 3 mức độ Dễ, Vừa, Khó.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-tab active btn-modal-close">Đã Hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: THÊM / CHỈNH SỬA CÂU HỎI -->
+  <div id="edit-question-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="edit-q-title" class="modal-title">Chỉnh Sửa Câu Hỏi</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-content">
+        <div class="form-group">
+          <label class="form-label">Nội Dung Câu Hỏi</label>
+          <textarea id="input-q-text" class="form-textarea" rows="3" placeholder="Nhập nội dung câu hỏi trắc nghiệm..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Đáp Án A</label>
+          <input type="text" id="input-opt-0" class="form-input" placeholder="Lựa chọn A">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Đáp Án B</label>
+          <input type="text" id="input-opt-1" class="form-input" placeholder="Lựa chọn B">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Đáp Án C</label>
+          <input type="text" id="input-opt-2" class="form-input" placeholder="Lựa chọn C">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Đáp Án D</label>
+          <input type="text" id="input-opt-3" class="form-input" placeholder="Lựa chọn D">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Đáp Án Đúng Là:</label>
+          <select id="input-correct" class="form-select">
+            <option value="0">Đáp Án A</option>
+            <option value="1">Đáp Án B</option>
+            <option value="2">Đáp Án C</option>
+            <option value="3">Đáp Án D</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-modal-close">Hủy</button>
+        <button class="btn btn-tab active" onclick="window.game.saveQuestionFromForm()">Lưu Câu Hỏi</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
