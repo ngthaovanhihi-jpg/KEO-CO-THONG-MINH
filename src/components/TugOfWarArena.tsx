@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TeamSide } from '../types';
+import { Bot, User } from 'lucide-react';
+import { TeamSide, OpponentMode } from '../types';
 
 interface TugOfWarArenaProps {
   ropePosition: number; // e.g. -6 (max left) to +6 (max right), 0 = center
@@ -12,6 +13,8 @@ interface TugOfWarArenaProps {
   leftQuestionIdx: number;
   rightQuestionIdx: number;
   totalQuestions: number;
+  opponentMode?: OpponentMode;
+  playerTeam?: TeamSide;
 }
 
 export const TugOfWarArena: React.FC<TugOfWarArenaProps> = ({
@@ -21,6 +24,8 @@ export const TugOfWarArena: React.FC<TugOfWarArenaProps> = ({
   lastActionResult,
   leftScore,
   rightScore,
+  opponentMode = 'pvp',
+  playerTeam = 'left',
 }) => {
   // Convert ropePosition to percentage offset:
   // ropePosition 0 = 0% offset.
@@ -45,11 +50,21 @@ export const TugOfWarArena: React.FC<TugOfWarArenaProps> = ({
         {/* Left Team Indicator */}
         <div className="flex items-center gap-2">
           <div className="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6] animate-pulse" />
-          <div>
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-extrabold text-blue-400 tracking-wide text-sm sm:text-base uppercase drop-shadow">
               Đội Xanh
             </span>
-            <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">
+            {opponentMode === 'vs_ai' && (
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide flex items-center gap-1 ${
+                playerTeam === 'left'
+                  ? 'bg-blue-500/30 text-blue-200 border border-blue-400/40'
+                  : 'bg-purple-900/60 text-purple-200 border border-purple-400/50'
+              }`}>
+                {playerTeam === 'left' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                <span>{playerTeam === 'left' ? 'Bạn' : 'Máy'}</span>
+              </span>
+            )}
+            <span className="px-2 py-0.5 text-xs font-bold bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">
               {leftScore} lần kéo
             </span>
           </div>
@@ -103,10 +118,20 @@ export const TugOfWarArena: React.FC<TugOfWarArenaProps> = ({
 
         {/* Right Team Indicator */}
         <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className="px-2 py-0.5 mr-2 text-xs font-bold bg-rose-500/20 text-rose-300 rounded-full border border-rose-500/30">
+          <div className="text-right flex items-center justify-end gap-1.5 flex-wrap">
+            <span className="px-2 py-0.5 text-xs font-bold bg-rose-500/20 text-rose-300 rounded-full border border-rose-500/30">
               {rightScore} lần kéo
             </span>
+            {opponentMode === 'vs_ai' && (
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide flex items-center gap-1 ${
+                playerTeam === 'right'
+                  ? 'bg-rose-500/30 text-rose-200 border border-rose-400/40'
+                  : 'bg-purple-900/60 text-purple-200 border border-purple-400/50'
+              }`}>
+                {playerTeam === 'right' ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                <span>{playerTeam === 'right' ? 'Bạn' : 'Máy'}</span>
+              </span>
+            )}
             <span className="font-extrabold text-rose-400 tracking-wide text-sm sm:text-base uppercase drop-shadow">
               Đội Đỏ
             </span>

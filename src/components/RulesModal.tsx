@@ -38,13 +38,23 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <strong className="text-slate-900 block font-semibold mb-0.5">Hai Đội Thi Đấu:</strong>
-              Mỗi bên (Đội Xanh bên trái & Đội Đỏ bên phải) có sẵn 10 câu hỏi trắc nghiệm ngẫu nhiên với 4 lựa chọn (A, B, C, D).
+              Mỗi bên (Đội Xanh bên trái & Đội Đỏ bên phải) có sẵn 10 câu hỏi trắc nghiệm với 4 lựa chọn (A, B, C, D).
+            </div>
+          </div>
+
+          <div className="flex gap-3 items-start">
+            <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 font-bold shrink-0 flex items-center justify-center text-xs">
+              2
+            </div>
+            <div>
+              <strong className="text-slate-900 block font-semibold mb-0.5">Thời Gian Trả Lời (15 Giây / Câu):</strong>
+              Mỗi đội có tối đa <strong className="text-amber-700">15 giây</strong> cho lượt trả lời của mình. Nếu sau 15 giây không trả lời được, lượt chơi sẽ tự động chuyển sang cho đội tiếp theo và dây đứng yên!
             </div>
           </div>
 
           <div className="flex gap-3 items-start">
             <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 font-bold shrink-0 flex items-center justify-center text-xs">
-              2
+              3
             </div>
             <div>
               <strong className="text-slate-900 block font-semibold mb-0.5">Trả Lời Đúng (Dây kéo về):</strong>
@@ -57,7 +67,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
 
           <div className="flex gap-3 items-start">
             <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 font-bold shrink-0 flex items-center justify-center text-xs">
-              3
+              4
             </div>
             <div>
               <strong className="text-slate-900 block font-semibold mb-0.5">Trả Lời Sai (Dây đứng yên):</strong>
@@ -69,22 +79,22 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div className="flex gap-3 items-start">
-            <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 font-bold shrink-0 flex items-center justify-center text-xs">
-              4
+            <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 font-bold shrink-0 flex items-center justify-center text-xs">
+              5
             </div>
             <div>
               <strong className="text-slate-900 block font-semibold mb-0.5">Xác Định Thắng Thua:</strong>
-              Sau khi cả 2 đội hoàn thành 10 câu hỏi, đội nào kéo ruy-băng đỏ qua vạch giữa về phía mình nhiều hơn sẽ giành chiến thắng chung cuộc! (Hoặc thắng ngay nếu kéo qua vạch thắng).
+              Sau khi cả 2 đội hoàn thành 10 câu hỏi, đội nào kéo ruy-băng đỏ qua vạch giữa về phía mình nhiều hơn sẽ giành chiến thắng chung cuộc! (Hoặc thắng ngay nếu kéo qua vạch knockout).
             </div>
           </div>
 
           <div className="flex gap-3 items-start">
             <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 font-bold shrink-0 flex items-center justify-center text-xs">
-              5
+              6
             </div>
             <div>
               <strong className="text-slate-900 block font-semibold mb-0.5">Tự Thêm Câu Hỏi:</strong>
-              Bấm nút <strong className="text-emerald-700">"Quản Lý Câu Hỏi"</strong> ở trên cùng để tự thêm câu hỏi mới theo chủ đề mong muốn hoặc xáo trộn câu hỏi ngẫu nhiên!
+              Mở tab <strong className="text-emerald-700">"Quản Lý Câu Hỏi"</strong> ở trên cùng để tự thêm, sửa, xóa, xáo trộn câu hỏi theo ý muốn!
             </div>
           </div>
         </div>

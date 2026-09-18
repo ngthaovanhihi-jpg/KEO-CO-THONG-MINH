@@ -19,6 +19,9 @@ export interface TeamConfig {
 
 export type GameMode = 'turn_based' | 'simultaneous';
 
+export type OpponentMode = 'pvp' | 'vs_ai'; // Chơi 2 người vs Chơi với máy
+export type AIDifficulty = 'easy' | 'medium' | 'hard';
+
 export type GameStatus = 'idle' | 'playing' | 'ended';
 
 export interface GameStats {

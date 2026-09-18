@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
-import { Trophy, RotateCcw, Edit3, Award } from 'lucide-react';
-import { TeamSide } from '../types';
+import { Trophy, RotateCcw, Edit3, Award, Bot, User } from 'lucide-react';
+import { TeamSide, OpponentMode } from '../types';
 import { sound } from '../utils/audio';
 
 interface GameOverModalProps {
@@ -12,6 +12,8 @@ interface GameOverModalProps {
   leftScore: number;
   rightScore: number;
   totalQuestions: number;
+  opponentMode?: OpponentMode;
+  playerTeam?: TeamSide;
   onRestart: () => void;
   onOpenQuestionManager: () => void;
 }
@@ -23,6 +25,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   leftScore,
   rightScore,
   totalQuestions,
+  opponentMode = 'pvp',
+  playerTeam = 'left',
   onRestart,
   onOpenQuestionManager,
 }) => {
@@ -63,6 +67,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const isRightWinner = winner === 'right';
   const isDraw = winner === 'draw';
 
+  const isVsAI = opponentMode === 'vs_ai';
+  const isPlayerWinner = isVsAI && ((isLeftWinner && playerTeam === 'left') || (isRightWinner && playerTeam === 'right'));
+  const isBotWinner = isVsAI && ((isLeftWinner && playerTeam === 'right') || (isRightWinner && playerTeam === 'left'));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
       <motion.div
@@ -76,7 +84,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
         {/* Trophy icon */}
         <div className="relative mx-auto w-20 h-20 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-900 flex items-center justify-center shadow-lg mb-4 animate-bounce">
-          <Trophy className="w-10 h-10 text-amber-950" />
+          {isVsAI && isBotWinner ? <Bot className="w-10 h-10 text-amber-950" /> : <Trophy className="w-10 h-10 text-amber-950" />}
         </div>
 
         {/* Title */}
@@ -85,18 +93,42 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         </span>
 
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          {isLeftWinner && <span className="text-blue-600">ĐỘI XANH CHIẾN THẮNG! 🏆</span>}
-          {isRightWinner && <span className="text-rose-600">ĐỘI ĐỎ CHIẾN THẮNG! 🏆</span>}
-          {isDraw && <span className="text-amber-600">HÒA NHAU BẤT PHÂN THẮNG BẠI! 🤝</span>}
+          {isVsAI ? (
+            isPlayerWinner ? (
+              <span className="text-emerald-600">BẠN ĐÃ CHIẾN THẮNG MÁY! 🏆</span>
+            ) : isBotWinner ? (
+              <span className="text-purple-600">MÁY (AI) ĐÃ CHIẾN THẮNG! 🤖</span>
+            ) : (
+              <span className="text-amber-600">HÒA NHAU VỚI MÁY! 🤝</span>
+            )
+          ) : (
+            <>
+              {isLeftWinner && <span className="text-blue-600">ĐỘI XANH CHIẾN THẮNG! 🏆</span>}
+              {isRightWinner && <span className="text-rose-600">ĐỘI ĐỎ CHIẾN THẮNG! 🏆</span>}
+              {isDraw && <span className="text-amber-600">HÒA NHAU BẤT PHÂN THẮNG BẠI! 🤝</span>}
+            </>
+          )}
         </h2>
 
         <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-sm mx-auto">
-          {isLeftWinner &&
-            `Đội Xanh đã xuất sắc trả lời đúng ${leftScore}/${totalQuestions} câu hỏi và kéo dây về sân nhà!`}
-          {isRightWinner &&
-            `Đội Đỏ đã xuất sắc trả lời đúng ${rightScore}/${totalQuestions} câu hỏi và kéo dây về sân nhà!`}
-          {isDraw &&
-            `Cả hai đội đều thi đấu kiên cường với điểm số ngang bằng và giữ dây ở vị trí cân bằng!`}
+          {isVsAI ? (
+            isPlayerWinner ? (
+              `Chúc mừng bạn! Bạn đã thi đấu xuất sắc, trả lời đúng ${playerTeam === 'left' ? leftScore : rightScore}/${totalQuestions} câu và kéo dây hạ gục máy tính!`
+            ) : isBotWinner ? (
+              `Máy tính đã trả lời chính xác và giành chiến thắng chung cuộc. Hãy bấm Chơi lại để phục thù!`
+            ) : (
+              `Bạn và máy tính có kết quả thi đấu ngang tài ngang sức!`
+            )
+          ) : (
+            <>
+              {isLeftWinner &&
+                `Đội Xanh đã xuất sắc trả lời đúng ${leftScore}/${totalQuestions} câu hỏi và kéo dây về sân nhà!`}
+              {isRightWinner &&
+                `Đội Đỏ đã xuất sắc trả lời đúng ${rightScore}/${totalQuestions} câu hỏi và kéo dây về sân nhà!`}
+              {isDraw &&
+                `Cả hai đội đều thi đấu kiên cường với điểm số ngang bằng và giữ dây ở vị trí cân bằng!`}
+            </>
+          )}
         </p>
 
         {/* Score Breakdown Cards */}
@@ -110,7 +142,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           >
             <div className="flex items-center justify-center gap-1.5 text-xs font-black text-blue-600 uppercase mb-1">
               <span className="w-2 h-2 rounded-full bg-blue-600" />
-              Đội Xanh
+              <span>Đội Xanh</span>
+              {isVsAI && (
+                <span className="text-[10px] text-blue-800 bg-blue-100 px-1 rounded font-bold">
+                  {playerTeam === 'left' ? 'Bạn' : 'Máy'}
+                </span>
+              )}
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
               {leftScore} <span className="text-xs font-normal text-slate-500">/{totalQuestions}</span>
@@ -127,7 +164,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
           >
             <div className="flex items-center justify-center gap-1.5 text-xs font-black text-rose-600 uppercase mb-1">
               <span className="w-2 h-2 rounded-full bg-rose-600" />
-              Đội Đỏ
+              <span>Đội Đỏ</span>
+              {isVsAI && (
+                <span className="text-[10px] text-rose-800 bg-rose-100 px-1 rounded font-bold">
+                  {playerTeam === 'right' ? 'Bạn' : 'Máy'}
+                </span>
+              )}
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
               {rightScore} <span className="text-xs font-normal text-slate-500">/{totalQuestions}</span>

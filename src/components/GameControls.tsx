@@ -8,17 +8,23 @@ import {
   Maximize2,
   Minimize2,
   Swords,
-  Sparkles,
+  ListOrdered,
+  Users,
+  Bot,
 } from 'lucide-react';
-import { GameMode } from '../types';
+import { GameMode, OpponentMode, TeamSide } from '../types';
 
 interface GameControlsProps {
+  activeTab: 'arena' | 'questions';
+  onSelectTab: (tab: 'arena' | 'questions') => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
   gameMode: GameMode;
   onToggleGameMode: () => void;
+  opponentMode: OpponentMode;
+  playerTeam: TeamSide;
+  onOpenMatchMode: () => void;
   onRestartGame: () => void;
-  onOpenQuestionManager: () => void;
   onOpenRules: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
@@ -27,12 +33,16 @@ interface GameControlsProps {
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
+  activeTab,
+  onSelectTab,
   soundEnabled,
   onToggleSound,
   gameMode,
   onToggleGameMode,
+  opponentMode,
+  playerTeam,
+  onOpenMatchMode,
   onRestartGame,
-  onOpenQuestionManager,
   onOpenRules,
   isFullscreen,
   onToggleFullscreen,
@@ -64,38 +74,92 @@ export const GameControls: React.FC<GameControlsProps> = ({
         </div>
       </div>
 
-      {/* Center mode pill */}
-      <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+      {/* Main Navigation Tabs: Sàn Đấu vs Quản Lý Câu Hỏi */}
+      <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-750 shadow-inner">
         <button
-          onClick={onToggleGameMode}
-          title="Chuyển chế độ thi đấu"
-          className="px-2.5 py-1 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer text-slate-200 hover:text-white"
+          id="tab-nav-arena"
+          onClick={() => onSelectTab('arena')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeTab === 'arena'
+              ? 'bg-amber-400 text-slate-950 shadow-sm font-black'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+          }`}
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px]">
-            Chế độ:{' '}
-            <strong className="text-amber-400">
-              {gameMode === 'turn_based' ? 'Lần lượt từng bên' : 'Tự do đồng thời'}
-            </strong>
+          <Swords className="w-3.5 h-3.5" />
+          <span>Sàn Đấu Kéo Co</span>
+        </button>
+
+        <button
+          id="tab-nav-questions"
+          onClick={() => onSelectTab('questions')}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            activeTab === 'questions'
+              ? 'bg-emerald-500 text-slate-950 shadow-sm font-black'
+              : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+          }`}
+        >
+          <ListOrdered className="w-3.5 h-3.5" />
+          <span>Quản Lý Câu Hỏi</span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+              activeTab === 'questions'
+                ? 'bg-slate-950/30 text-slate-950'
+                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+            }`}
+          >
+            {leftCount + rightCount}
           </span>
         </button>
       </div>
 
       {/* Action Buttons */}
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* Question Manager button */}
-        <button
-          id="btn-open-question-manager"
-          onClick={onOpenQuestionManager}
-          className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
-          title="Thêm và quản lý câu hỏi trắc nghiệm"
-        >
-          <PlusCircle className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Quản Lý Câu Hỏi</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-emerald-800 text-[10px] font-mono">
-            {leftCount} | {rightCount}
-          </span>
-        </button>
+        {/* Opponent Mode (2 Người vs Chơi với máy) */}
+        {activeTab === 'arena' && (
+          <button
+            id="btn-match-mode-selector"
+            onClick={onOpenMatchMode}
+            title="Đổi đối thủ: 2 Người hoặc Chơi Với Máy (AI)"
+            className={`px-2.5 py-1.5 text-xs font-bold rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+              opponentMode === 'vs_ai'
+                ? 'bg-purple-950/80 hover:bg-purple-900 border-purple-500/50 text-purple-200'
+                : 'bg-emerald-950/80 hover:bg-emerald-900 border-emerald-500/50 text-emerald-200'
+            }`}
+          >
+            {opponentMode === 'vs_ai' ? (
+              <>
+                <Bot className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-[11px] hidden sm:inline">
+                  Đấu Máy ({playerTeam === 'left' ? 'Đội Xanh' : 'Đội Đỏ'})
+                </span>
+                <span className="text-[11px] sm:hidden">Vs Máy</span>
+              </>
+            ) : (
+              <>
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-[11px] hidden sm:inline">2 Người Chơi</span>
+                <span className="text-[11px] sm:hidden">2 Người</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Game mode toggle */}
+        {activeTab === 'arena' && (
+          <button
+            onClick={onToggleGameMode}
+            title="Chuyển chế độ thi đấu"
+            className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer text-slate-200"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] hidden sm:inline">
+              Chế độ:{' '}
+              <strong className="text-amber-400">
+                {gameMode === 'turn_based' ? 'Lần lượt' : 'Đồng thời'}
+              </strong>
+            </span>
+          </button>
+        )}
 
         {/* Restart Match button */}
         <button
